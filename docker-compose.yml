@@ -1,0 +1,137 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: statescan-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=statescan
+    networks:
+      - statescan-network
+
+  # Block scanner - indexes blockchain data
+  block-scan:
+    build:
+      context: .
+      dockerfile: backend/packages/block-scan/Dockerfile
+    container_name: statescan-block-scan
+    depends_on:
+      - mongodb
+    environment:
+      - WS_ENDPOINT=wss://finney.uomi.ai
+      - CHAIN=uomi
+      - MONGO_BLOCK_SCAN_URL=mongodb://mongodb:27017
+      - MONGO_BLOCK_SCAN_NAME=statescan-polkadot-block
+      - MONGO_META_URL=mongodb://mongodb:27017
+      - MONGO_DB_META_NAME=meta-polkadot
+      - SCAN_STEP=100
+      - USE_META=1
+      - SIMPLE_MODE=1
+      - LOG_LEVEL=info
+      - NODE_ENV=production
+    networks:
+      - statescan-network
+    restart: unless-stopped
+
+  # Account scanner - indexes account balance data
+  account-scan:
+    build:
+      context: .
+      dockerfile: backend/packages/account-scan/Dockerfile
+    container_name: statescan-account-scan
+    depends_on:
+      - mongodb
+      - block-scan
+    environment:
+      - WS_ENDPOINT=wss://finney.uomi.ai
+      - CHAIN=uomi
+      - MONGO_ACCOUNT_SCAN_URL=mongodb://mongodb:27017
+      - MONGO_ACCOUNT_SCAN_NAME=statescan-polkadot-account
+      - MONGO_BLOCK_SCAN_URL=mongodb://mongodb:27017
+      - MONGO_BLOCK_SCAN_NAME=statescan-polkadot-block
+      - SCAN_STEP=100
+      - LOG_LEVEL=info
+      - NODE_ENV=production
+    networks:
+      - statescan-network
+    restart: unless-stopped
+
+  # RESTful API server
+  api-server:
+    build:
+      context: .
+      dockerfile: backend/packages/server/Dockerfile
+    container_name: statescan-api-server
+    ports:
+      - "5010:5010"
+    depends_on:
+      - mongodb
+    environment:
+      - PORT=5010
+      - MONGO_BLOCK_SCAN_URL=mongodb://mongodb:27017
+      - MONGO_BLOCK_SCAN_NAME=statescan-polkadot-block
+      - MONGO_ACCOUNT_SCAN_URL=mongodb://mongodb:27017
+      - MONGO_ACCOUNT_SCAN_NAME=statescan-polkadot-account
+      - MONGO_ASSET_SCAN_URL=mongodb://mongodb:27017
+      - MONGO_ASSET_SCAN_NAME=statescan-polkadot-asset
+      - MONGO_RUNTIME_SCAN_URL=mongodb://mongodb:27017
+      - MONGO_RUNTIME_SCAN_NAME=statescan-polkadot-runtime
+      - CHAIN=uomi
+      - SIMPLE_MODE=1
+    networks:
+      - statescan-network
+    restart: unless-stopped
+
+  # GraphQL API server
+  graphql-server:
+    build:
+      context: .
+      dockerfile: backend/packages/graphql-server/Dockerfile
+    container_name: statescan-graphql-server
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mongodb
+    environment:
+      - PORT=4000
+      - MONGO_BLOCK_SCAN_URL=mongodb://mongodb:27017
+      - MONGO_BLOCK_SCAN_NAME=statescan-polkadot-block
+      - MONGO_ACCOUNT_SCAN_URL=mongodb://mongodb:27017
+      - MONGO_ACCOUNT_SCAN_NAME=statescan-polkadot-account
+      - CHAIN=uomi
+      - WS_ENDPOINT=wss://finney.uomi.ai
+    networks:
+      - statescan-network
+    restart: unless-stopped
+
+  # Frontend React app
+  frontend:
+    build:
+      context: ./site
+      dockerfile: Dockerfile
+    container_name: statescan-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-server
+      - graphql-server
+    environment:
+      - REACT_APP_PUBLIC_API_END_POINT=http://localhost:5010/
+      - REACT_APP_PUBLIC_GRAPHQL_API_END_POINT=http://localhost:4000/
+      - REACT_APP_PUBLIC_CHAIN=uomi
+      - REACT_APP_DEFAULT_IPFS_GATEWAY=https://cloudflare-ipfs.com/ipfs/
+      - REACT_APP_PUBLIC_SIMPLE_MODE=true
+    networks:
+      - statescan-network
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  statescan-network:
+    driver: bridge

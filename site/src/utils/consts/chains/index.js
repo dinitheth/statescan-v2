@@ -32,6 +32,7 @@ import cereTestnet from "./cere-testnet";
 import cere from "./cere";
 import ajuna from "./ajuna";
 import interlay from "./interlay";
+import uomi from "./uomi";
 
 const chains = {
   polkadot,
@@ -71,6 +72,7 @@ const chains = {
   argon,
   cere,
   "cere-testnet": cereTestnet,
+  uomi,
 };
 
 export default chains;
