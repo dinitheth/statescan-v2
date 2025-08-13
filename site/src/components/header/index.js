@@ -33,7 +33,7 @@ import { useScrollLock } from "../../utils/hooks/useScrollLock";
 import { HeaderMenuItem } from "./styled";
 import NodeSwitch from "../nodeSwitch";
 import MobileNodeSwitch from "./mobileNodeSwitch";
-import { getIsSimpleMode } from "../../utils/env";
+import { getIsSimpleMode, getSiteLogo } from "../../utils/env";
 import getBusinessMenus from "../../utils/consts/menu";
 
 const headerHeight = 68;
@@ -42,6 +42,10 @@ const StyleLogo = styled(Logo)`
   path {
     fill: ${(props) => props.theme.fontPrimary};
   }
+`;
+
+const CustomLogo = styled.img`
+  height: 20px;
 `;
 
 const Link = styled(LinkOrigin)`
@@ -115,6 +119,7 @@ export default function Header() {
   const shouldShowPCExplore = location.pathname !== "/";
   const { assets, uniques } = getChainModules();
   const isSimpleMode = getIsSimpleMode();
+  const logoUrl = getSiteLogo();
 
   const { width } = useWindowSize();
 
@@ -136,7 +141,11 @@ export default function Header() {
             dispatch(closeMobileMenu());
           }}
         >
-          <StyleLogo />
+          {logoUrl ? (
+            <CustomLogo src={logoUrl} alt="logo" data-testid="custom-logo" />
+          ) : (
+            <StyleLogo data-testid="default-logo" />
+          )}
         </Link>
 
         <PC>
