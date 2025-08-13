@@ -30,3 +30,7 @@ export function getIsSimpleMode() {
     process.env.REACT_APP_PUBLIC_SIMPLE_MODE,
   );
 }
+
+export function getSiteLogo() {
+  return process.env.REACT_APP_SITE_LOGO;
+}

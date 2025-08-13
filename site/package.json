@@ -57,6 +57,9 @@
     "eject": "react-scripts eject",
     "lint": "eslint src"
   },
+  "jest": {
+    "transformIgnorePatterns": ["node_modules/(?!(?:@polkadot|@osn)/)"]
+  },
   "browserslist": {
     "production": [
       "chrome >= 67",
