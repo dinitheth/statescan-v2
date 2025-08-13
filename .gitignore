@@ -1,4 +1,3 @@
-.vscode
 
 # Logs
 log
@@ -72,8 +71,6 @@ typings/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
-.env.test
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -118,3 +115,4 @@ dist
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+config.bat

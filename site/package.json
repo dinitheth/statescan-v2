@@ -51,11 +51,16 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "BROWSER=none react-scripts start",
-    "build": "react-scripts build",
+    "start": "node init && BROWSER=none react-scripts start",
+    "build": "node init && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint src"
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!(?:@polkadot|@osn)/)"
+    ]
   },
   "browserslist": {
     "production": [

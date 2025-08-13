@@ -10,7 +10,7 @@
     }
   ],
   "scripts": {
-    "dev": "node src/index.js",
+    "dev": "node init && node src/index.js",
     "lint": "eslint ."
   },
   "dependencies": {
